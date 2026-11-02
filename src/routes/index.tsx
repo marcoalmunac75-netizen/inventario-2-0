@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PageTitle, StatCard } from "@/components/AppHeader";
+import { PageTitle, StatCard, pretty } from "@/components/AppHeader";
 import { EstadoBadge } from "@/components/EstadoBadge";
-import { TIPOS, countBy, useInventory } from "@/lib/inventory";
+import { countBy, distinct, useInventory } from "@/lib/inventory";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,31 +19,32 @@ function Dashboard() {
   const list = useInventory();
   const estados = countBy(list, "estado");
   const tipos = countBy(list, "tipo");
-  const recientes = [...list].sort((a, b) => b.creado.localeCompare(a.creado)).slice(0, 6);
-  const max = Math.max(...TIPOS.map((t) => tipos[t] ?? 0), 1);
+  const tipoKeys = distinct(list, "tipo");
+  const max = Math.max(...tipoKeys.map((t) => tipos[t]), 1);
+  const atencion = list.filter((a) => ["DAÑADO", "GESTION CAMBIO DE EQUIPO", "PENDIENTE DE VALIDAR"].includes(a.estado)).slice(0, 8);
 
   return (
     <>
-      <PageTitle title="Dashboard" subtitle="Resumen general del parque tecnológico" />
+      <PageTitle title="Dashboard" subtitle="Inventario de activos tecnológicos 2026" />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total activos" value={list.length} hint="Registrados" />
-        <StatCard label="Operativos" value={estados["Operativo"] ?? 0} hint="Estado del activo" tone="success" />
-        <StatCard label="En reparación" value={estados["En reparación"] ?? 0} hint="Estado del activo" tone="warning" />
-        <StatCard label="De baja" value={estados["De baja"] ?? 0} hint="Estado del activo" tone="destructive" />
+        <StatCard label="Operativos" value={estados["OPERATIVO"] ?? 0} hint="Estado del activo" tone="success" />
+        <StatCard label="Con cambio de equipo" value={estados["GESTION CAMBIO DE EQUIPO"] ?? 0} hint="Estado del activo" tone="warning" />
+        <StatCard label="Dañados" value={estados["DAÑADO"] ?? 0} hint="Estado del activo" tone="destructive" />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="panel">
           <h2 className="mb-4 font-semibold">Activos por tipo</h2>
           <div className="space-y-3">
-            {TIPOS.map((t) => (
+            {tipoKeys.map((t) => (
               <div key={t}>
                 <div className="mb-1 flex justify-between text-sm">
-                  <span>{t}</span>
-                  <span className="font-semibold tabular-nums">{tipos[t] ?? 0}</span>
+                  <span>{pretty(t)}</span>
+                  <span className="font-semibold tabular-nums">{tipos[t]}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-primary" style={{ width: `${((tipos[t] ?? 0) / max) * 100}%` }} />
+                  <div className="h-2 rounded-full bg-primary" style={{ width: `${(tipos[t] / max) * 100}%` }} />
                 </div>
               </div>
             ))}
@@ -51,19 +52,20 @@ function Dashboard() {
         </div>
         <div className="panel">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-semibold">Últimos registros</h2>
-            <Link to="/inventario" className="text-sm text-primary hover:underline">Ver todo</Link>
+            <h2 className="font-semibold">Requieren atención</h2>
+            <Link to="/inventario" className="text-sm text-primary hover:underline">Ver inventario</Link>
           </div>
           <ul className="divide-y">
-            {recientes.map((a) => (
+            {atencion.map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                 <div className="min-w-0">
-                  <div className="font-medium">{a.marca} {a.modelo}</div>
-                  <div className="truncate text-xs text-muted-foreground">{a.codigo} · {a.responsable}</div>
+                  <div className="font-medium">{a.tipo} · {a.marca} {a.modelo}</div>
+                  <div className="truncate text-xs text-muted-foreground">{a.id} · {a.usuario || "Sin usuario"} · {a.area}</div>
                 </div>
                 <EstadoBadge estado={a.estado} />
               </li>
             ))}
+            {atencion.length === 0 && <li className="py-6 text-center text-sm text-muted-foreground">Nada pendiente</li>}
           </ul>
         </div>
       </div>

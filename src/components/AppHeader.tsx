@@ -56,5 +56,34 @@ export function StatCard({ label, value, hint, tone = "default" }: { label: stri
   );
 }
 
-export const estadoTone = (e: string) =>
-  e === "Operativo" ? "success" : e === "En reparación" ? "warning" : e === "De baja" ? "destructive" : "default";
+export const estadoTone = (e: string): "default" | "success" | "warning" | "destructive" =>
+  e === "OPERATIVO" || e === "EQUIPO NUEVO"
+    ? "success"
+    : e === "GESTION CAMBIO DE EQUIPO" || e === "PENDIENTE DE VALIDAR"
+      ? "warning"
+      : e === "DAÑADO" || e === "BAJA"
+        ? "destructive"
+        : "default";
+
+const PLURAL: Record<string, string> = {
+  NOTEBOOK: "Notebooks",
+  MONITOR: "Monitores",
+  IMPRESORA: "Impresoras",
+  PC: "PCs",
+  UPS: "UPS",
+  SWITCH: "Switches",
+  "IMPRESORA DE CHEQUES": "Impresoras de cheques",
+  NVR: "NVR",
+  "MINI PC": "Mini PC",
+  "FIREWALL / SEGURIDAD DE RED": "Firewall / Seg. de red",
+  OPERATIVO: "Operativos",
+  "EQUIPO NUEVO": "Equipos nuevos",
+  REACONDICIONADO: "Reacondicionados",
+  "GESTION CAMBIO DE EQUIPO": "Gestión cambio de equipo",
+  "EN BODEGA": "En bodega",
+  "PENDIENTE DE VALIDAR": "Pendientes de validar",
+  DAÑADO: "Dañados",
+  BAJA: "De baja",
+};
+export const pretty = (v: string) =>
+  PLURAL[v] ?? v.charAt(0) + v.slice(1).toLowerCase();
