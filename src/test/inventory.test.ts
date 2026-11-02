@@ -8,5 +8,5 @@ describe("inventario real cargado desde la planilla", () => {
   it("tiene 92 monitores", () => expect(countBy(seed, "tipo")["MONITOR"]).toBe(92));
   it("tiene 162 activos operativos", () => expect(countBy(seed, "estado")["OPERATIVO"]).toBe(162));
   it("tiene 12 equipos en gestión de cambio", () => expect(countBy(seed, "estado")["GESTION CAMBIO DE EQUIPO"]).toBe(12));
-  it("el siguiente activo nuevo es ACT-0294", () => expect(nextId(seed).id).toBe("ACT-0294"));
+  it("el siguiente activo nuevo continúa después del último ID (ACT-0334)", () => expect(nextId(seed).id).toBe("ACT-0335"));
 });

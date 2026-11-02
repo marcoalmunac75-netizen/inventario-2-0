@@ -77,7 +77,7 @@ function Breakdown({ title, list, k, tone, raw }: { title: string; list: Activo[
   return (
     <div className="panel">
       <h2 className="mb-3 font-semibold">{title}</h2>
-      <Rows total={list.length} rows={keys.map((v) => [raw ? v : pretty(v), c[v], tone ? estadoTone(v) : undefined])} />
+      <Rows total={list.length} rows={keys.map((v) => [raw ? v : pretty(v), c[v] ?? 0, tone ? estadoTone(v) : undefined])} />
     </div>
   );
 }
