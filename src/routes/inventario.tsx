@@ -94,7 +94,7 @@ function Inventario() {
           <tbody className="divide-y">
             {rows.map((a) => (
               <tr key={a.id} className="cursor-pointer hover:bg-muted/40" onClick={() => setDetalle(a)}>
-                <td className="px-3 py-2.5 font-mono text-xs">{a.id}</td>
+                <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs">{a.id}</td>
                 <td className="px-3 py-2.5 text-xs">{a.tipo}</td>
                 <td className="px-3 py-2.5">{a.marca} <span className="text-muted-foreground">{a.modelo}</span></td>
                 <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{a.serie || "—"}</td>

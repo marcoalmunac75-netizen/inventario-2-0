@@ -10,4 +10,5 @@
 <!-- LOVABLE:END -->
 
 ## Project rules
-- Inventory data lives in `src/lib/inventory.ts` (in-memory store persisted to browser localStorage, seeded deterministically); swap this module for a backend when shared data is needed, since every page reads through `useInventory()`.
+- Inventory data lives in `src/lib/inventory.ts` (in-memory store persisted to browser localStorage, seeded from `src/data/inventario.json`, generated from the user's Excel with placeholder values like "SIN INFORMACIÓN" stored as empty strings); swap this module for a backend when shared data is needed, since every page reads through `useInventory()`.
+- Bump the localStorage key in `inventory.ts` whenever the seed data or record shape changes, so browsers drop stale copies.
