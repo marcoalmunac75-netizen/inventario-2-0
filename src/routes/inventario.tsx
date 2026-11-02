@@ -3,10 +3,12 @@ import { useMemo, useState } from "react";
 import { Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageTitle } from "@/components/AppHeader";
+import { EstadoBadge } from "@/components/EstadoBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ESTADOS, TIPOS, removeActivo, updateEstado, useInventory, type Estado } from "@/lib/inventory";
+import { COLUMNAS, ESTADOS, distinct, formatFecha, removeActivo, updateEstado, useInventory, type Activo } from "@/lib/inventory";
 
 export const Route = createFileRoute("/inventario")({
   head: () => ({
@@ -21,27 +23,35 @@ export const Route = createFileRoute("/inventario")({
 });
 
 const PAGE = 25;
+const SEARCH_KEYS: (keyof Activo)[] = ["id", "marca", "modelo", "serie", "nInventario", "usuario", "area", "responsable", "ip", "mac", "empresa"];
 
 function Inventario() {
   const list = useInventory();
   const [q, setQ] = useState("");
-  const [tipo, setTipo] = useState("todos");
-  const [estado, setEstado] = useState("todos");
+  const [f, setF] = useState({ tipo: "todos", estado: "todos", ubicacion: "todos", empresa: "todos" });
   const [page, setPage] = useState(0);
+  const [detalle, setDetalle] = useState<Activo | null>(null);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     return list.filter(
       (a) =>
-        (tipo === "todos" || a.tipo === tipo) &&
-        (estado === "todos" || a.estado === estado) &&
-        (!s || [a.codigo, a.marca, a.modelo, a.serie, a.responsable, a.ubicacion].some((v) => v.toLowerCase().includes(s))),
+        (Object.keys(f) as (keyof typeof f)[]).every((k) => f[k] === "todos" || a[k] === f[k]) &&
+        (!s || SEARCH_KEYS.some((k) => a[k].toLowerCase().includes(s))),
     );
-  }, [list, q, tipo, estado]);
+  }, [list, q, f]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const current = Math.min(page, pages - 1);
   const rows = filtered.slice(current * PAGE, current * PAGE + PAGE);
+  const setFilter = (k: keyof typeof f, v: string) => { setF((p) => ({ ...p, [k]: v })); setPage(0); };
+
+  const filtros: { k: keyof typeof f; label: string; opts: string[] }[] = [
+    { k: "tipo", label: "Todos los tipos", opts: distinct(list, "tipo") },
+    { k: "estado", label: "Todos los estados", opts: [...ESTADOS] },
+    { k: "ubicacion", label: "Todas las ubicaciones", opts: distinct(list, "ubicacion") },
+    { k: "empresa", label: "Todas las empresas", opts: distinct(list, "empresa") },
+  ];
 
   return (
     <>
@@ -50,67 +60,64 @@ function Inventario() {
         subtitle={`${filtered.length} de ${list.length} activos`}
         action={<Button asChild><Link to="/nuevo">Nuevo activo</Link></Button>}
       />
-      <div className="panel mb-4 grid gap-3 sm:grid-cols-[1fr_180px_180px]">
-        <div className="relative">
+      <div className="panel mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+        <div className="relative lg:col-span-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" placeholder="Buscar por código, serie, responsable…" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} />
+          <Input className="pl-9" placeholder="Buscar serie, usuario, IP…" value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} />
         </div>
-        <Select value={tipo} onValueChange={(v) => { setTipo(v); setPage(0); }}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos los tipos</SelectItem>
-            {TIPOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={estado} onValueChange={(v) => { setEstado(v); setPage(0); }}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos los estados</SelectItem>
-            {ESTADOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {filtros.map((fl) => (
+          <Select key={fl.k} value={f[fl.k]} onValueChange={(v) => setFilter(fl.k, v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">{fl.label}</SelectItem>
+              {fl.opts.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        ))}
       </div>
 
       <div className="panel overflow-x-auto p-0">
         <table className="w-full text-sm">
           <thead className="border-b bg-muted/60 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">Código</th>
-              <th className="px-4 py-3">Tipo</th>
-              <th className="px-4 py-3">Equipo</th>
-              <th className="px-4 py-3">Serie</th>
-              <th className="px-4 py-3">Responsable</th>
-              <th className="px-4 py-3">Ubicación</th>
-              <th className="px-4 py-3">Estado</th>
-              <th className="px-4 py-3" />
+              <th className="px-3 py-3">ID</th>
+              <th className="px-3 py-3">Tipo</th>
+              <th className="px-3 py-3">Equipo</th>
+              <th className="px-3 py-3">N° serie</th>
+              <th className="px-3 py-3">Usuario</th>
+              <th className="px-3 py-3">Área</th>
+              <th className="px-3 py-3">Ubicación</th>
+              <th className="px-3 py-3">Estado</th>
+              <th className="px-3 py-3" />
             </tr>
           </thead>
           <tbody className="divide-y">
             {rows.map((a) => (
-              <tr key={a.id} className="hover:bg-muted/40">
-                <td className="px-4 py-2.5 font-mono text-xs">{a.codigo}</td>
-                <td className="px-4 py-2.5">{a.tipo}</td>
-                <td className="px-4 py-2.5">{a.marca} {a.modelo}</td>
-                <td className="px-4 py-2.5 font-mono text-xs text-muted-foreground">{a.serie}</td>
-                <td className="px-4 py-2.5">{a.responsable}</td>
-                <td className="px-4 py-2.5">{a.ubicacion}</td>
-                <td className="px-4 py-2.5">
-                  <Select value={a.estado} onValueChange={(v) => updateEstado(a.id, v as Estado)}>
-                    <SelectTrigger className="h-8 w-[150px]" aria-label={`Estado de ${a.codigo}`}><SelectValue /></SelectTrigger>
+              <tr key={a.id} className="cursor-pointer hover:bg-muted/40" onClick={() => setDetalle(a)}>
+                <td className="px-3 py-2.5 font-mono text-xs">{a.id}</td>
+                <td className="px-3 py-2.5 text-xs">{a.tipo}</td>
+                <td className="px-3 py-2.5">{a.marca} <span className="text-muted-foreground">{a.modelo}</span></td>
+                <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{a.serie || "—"}</td>
+                <td className="px-3 py-2.5">{a.usuario || "—"}</td>
+                <td className="px-3 py-2.5 text-xs">{a.area || "—"}</td>
+                <td className="px-3 py-2.5 text-xs">{a.ubicacion || "—"}</td>
+                <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+                  <Select value={a.estado} onValueChange={(v) => updateEstado(a.id, v)}>
+                    <SelectTrigger className="h-8 w-[190px] text-xs" aria-label={`Estado de ${a.id}`}><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {ESTADOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="ghost"
                     size="icon"
-                    aria-label={`Eliminar ${a.codigo}`}
+                    aria-label={`Eliminar ${a.id}`}
                     onClick={() => {
-                      if (confirm(`¿Eliminar ${a.codigo}?`)) {
+                      if (confirm(`¿Eliminar ${a.id}?`)) {
                         removeActivo(a.id);
-                        toast.success(`${a.codigo} eliminado`);
+                        toast.success(`${a.id} eliminado`);
                       }
                     }}
                   >
@@ -120,7 +127,7 @@ function Inventario() {
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">Sin resultados</td></tr>
+              <tr><td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">Sin resultados</td></tr>
             )}
           </tbody>
         </table>
@@ -133,6 +140,28 @@ function Inventario() {
           <Button variant="outline" size="sm" disabled={current >= pages - 1} onClick={() => setPage(current + 1)}>Siguiente</Button>
         </div>
       </div>
+
+      <Dialog open={!!detalle} onOpenChange={(o) => !o && setDetalle(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          {detalle && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  {detalle.id} · {detalle.tipo} <EstadoBadge estado={detalle.estado} />
+                </DialogTitle>
+              </DialogHeader>
+              <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                {COLUMNAS.filter((c) => c.key !== "id" && c.key !== "estado").map((c) => (
+                  <div key={c.key}>
+                    <dt className="text-xs text-muted-foreground">{c.label}</dt>
+                    <dd className="text-sm">{c.key === "fechaEntrega" ? formatFecha(detalle[c.key]) : detalle[c.key] || "—"}</dd>
+                  </div>
+                ))}
+              </dl>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
