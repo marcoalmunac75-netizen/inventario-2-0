@@ -1,5 +1,6 @@
-import { useSyncExternalStore } from "react";
-import seedData from "@/data/inventario.json";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
 /** Valores estandarizados tomados de la planilla "Inventario TI" de la Gerencia de Informática. */
 export const TIPOS = [
@@ -65,83 +66,99 @@ export interface Activo {
 
 export type NuevoActivo = Omit<Activo, "id" | "nInventario">;
 
-const STORAGE_KEY = "inventario-ti:v2";
+type Row = Database["public"]["Tables"]["activos"]["Row"];
+type Insert = Database["public"]["Tables"]["activos"]["Insert"];
 
-export function buildSeed(): Activo[] {
-  return (seedData as Activo[]).map((a) => ({ ...a }));
+export function fromRow(r: Row): Activo {
+  return {
+    id: r.id,
+    tipo: r.tipo,
+    marca: r.marca,
+    modelo: r.modelo,
+    serie: r.serie,
+    nInventario: r.n_inventario,
+    usuario: r.usuario,
+    area: r.area,
+    ubicacion: r.ubicacion,
+    estado: r.estado,
+    fechaEntrega: r.fecha_entrega,
+    garantia: r.garantia,
+    so: r.so,
+    ram: r.ram,
+    disco: r.disco,
+    ip: r.ip,
+    mac: r.mac,
+    responsable: r.responsable,
+    observaciones: r.observaciones,
+    empresa: r.empresa,
+  };
 }
 
-let state: Activo[] = buildSeed();
-const listeners = new Set<() => void>();
-let loaded = false;
-
-function emit() {
-  listeners.forEach((l) => l());
+export function toInsert(a: NuevoActivo): Insert {
+  const { fechaEntrega, ...rest } = a;
+  // id vacío: la base de datos asigna el siguiente ID ACTIVO y N° de inventario.
+  return { ...rest, fecha_entrega: fechaEntrega, id: "", n_inventario: "" };
 }
-function persist() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    /* ignore */
+
+export const ACTIVOS_KEY = ["activos"] as const;
+
+async function fetchActivos(): Promise<Activo[]> {
+  const out: Activo[] = [];
+  const size = 1000;
+  for (let from = 0; ; from += size) {
+    const { data, error } = await supabase.from("activos").select("*").order("id").range(from, from + size - 1);
+    if (error) throw error;
+    out.push(...data.map(fromRow));
+    if (data.length < size) return out;
   }
 }
 
-export function loadInventory() {
-  if (loaded || typeof window === "undefined") return;
-  loaded = true;
-  try {
-    localStorage.removeItem("inventario-ti:v1");
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      state = JSON.parse(raw);
-      emit();
-    }
-  } catch {
-    /* ignore */
-  }
+const EMPTY: Activo[] = [];
+
+export function useInventory(): Activo[] {
+  const { data } = useQuery({ queryKey: ACTIVOS_KEY, queryFn: fetchActivos });
+  return data ?? EMPTY;
 }
 
-const num = (id: string) => parseInt(id.replace(/\D/g, ""), 10) || 0;
-
-export function nextId(list: Activo[]): { id: string; nInventario: string } {
-  const max = list.reduce((m, a) => Math.max(m, num(a.id), num(a.nInventario)), 0);
-  return { id: `ACT-${String(max + 1).padStart(4, "0")}`, nInventario: String(max + 1) };
+export function useInventoryStatus() {
+  return useQuery({ queryKey: ACTIVOS_KEY, queryFn: fetchActivos });
 }
 
-export function addActivo(data: NuevoActivo): Activo {
-  const activo: Activo = { ...data, ...nextId(state) };
-  state = [...state, activo];
-  persist();
-  emit();
-  return activo;
+export function useAddActivo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (a: NuevoActivo) => {
+      const { data, error } = await supabase.from("activos").insert(toInsert(a)).select().single();
+      if (error) throw error;
+      return fromRow(data);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ACTIVOS_KEY }),
+  });
 }
 
-export function updateEstado(id: string, estado: string) {
-  state = state.map((a) => (a.id === id ? { ...a, estado } : a));
-  persist();
-  emit();
+export function useUpdateEstado() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, estado }: { id: string; estado: string }) => {
+      const { error } = await supabase.from("activos").update({ estado }).eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: ({ id, estado }) => {
+      qc.setQueryData<Activo[]>(ACTIVOS_KEY, (l) => l?.map((a) => (a.id === id ? { ...a, estado } : a)));
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ACTIVOS_KEY }),
+  });
 }
 
-export function removeActivo(id: string) {
-  state = state.filter((a) => a.id !== id);
-  persist();
-  emit();
-}
-
-export function resetInventory() {
-  state = buildSeed();
-  persist();
-  emit();
-}
-
-const subscribe = (l: () => void) => {
-  listeners.add(l);
-  return () => listeners.delete(l);
-};
-const seedSnapshot = state;
-
-export function useInventory() {
-  return useSyncExternalStore(subscribe, () => state, () => seedSnapshot);
+export function useRemoveActivo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("activos").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ACTIVOS_KEY }),
+  });
 }
 
 export function countBy<K extends keyof Activo>(list: Activo[], key: K): Record<string, number> {

@@ -1,21 +1,54 @@
-import { Link } from "@tanstack/react-router";
-import { LayoutGrid, List, Plus, Columns3 } from "lucide-react";
+import { getRouteApi, Link, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { LayoutGrid, List, Plus, Columns3, Users, LogOut } from "lucide-react";
+import { signOut, useIsAdmin, useProfile } from "@/lib/auth";
 
 const items = [
-  { to: "/", label: "Dashboard", icon: LayoutGrid },
-  { to: "/inventario", label: "Inventario", icon: List },
-  { to: "/nuevo", label: "Nuevo activo", icon: Plus },
-  { to: "/reportes", label: "Reportes", icon: Columns3 },
+  { to: "/", label: "Dashboard", icon: LayoutGrid, admin: false },
+  { to: "/inventario", label: "Inventario", icon: List, admin: false },
+  { to: "/nuevo", label: "Nuevo activo", icon: Plus, admin: true },
+  { to: "/reportes", label: "Reportes", icon: Columns3, admin: false },
+  { to: "/usuarios", label: "Usuarios", icon: Users, admin: false },
 ] as const;
 
+const authRoute = getRouteApi("/_authenticated");
+
 export function AppHeader() {
+  const { user } = authRoute.useRouteContext();
+  const isAdmin = useIsAdmin(user.id);
+  const profile = useProfile(user.id);
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const visible = items.filter((it) => !it.admin || isAdmin);
+
   return (
     <header className="rounded-b-2xl bg-shell px-4 pb-4 pt-5 text-shell-foreground sm:rounded-2xl sm:mx-4 sm:mt-4">
       <div className="mx-auto max-w-6xl">
-        <div className="text-lg font-bold leading-tight">Inventario TI</div>
-        <div className="text-xs text-shell-muted">Gerencia de Informática</div>
-        <nav className="mt-4 grid grid-cols-2 gap-2 md:grid-cols-4">
-          {items.map((it) => (
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-lg font-bold leading-tight">Inventario TI</div>
+            <div className="text-xs text-shell-muted">Gerencia de Informática</div>
+          </div>
+          <div className="flex items-center gap-3 text-right">
+            <div className="hidden sm:block">
+              <div className="text-sm font-medium leading-tight">{profile?.full_name || user.email}</div>
+              <div className="text-xs text-shell-muted">{isAdmin ? "Administrador" : "Solo lectura"}</div>
+            </div>
+            <button
+              type="button"
+              className="nav-pill"
+              onClick={async () => {
+                await signOut(queryClient);
+                navigate({ to: "/auth", replace: true });
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              Salir
+            </button>
+          </div>
+        </div>
+        <nav className={`mt-4 grid grid-cols-2 gap-2 ${visible.length === 5 ? "md:grid-cols-5" : "md:grid-cols-4"}`}>
+          {visible.map((it) => (
             <Link
               key={it.to}
               to={it.to}

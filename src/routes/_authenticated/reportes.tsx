@@ -4,7 +4,7 @@ import { PageTitle, StatCard, estadoTone, pretty } from "@/components/AppHeader"
 import { Button } from "@/components/ui/button";
 import { countBy, distinct, toCsv, useInventory, type Activo } from "@/lib/inventory";
 
-export const Route = createFileRoute("/reportes")({
+export const Route = createFileRoute("/_authenticated/reportes")({
   head: () => ({
     meta: [
       { title: "Reportes · Inventario TI" },

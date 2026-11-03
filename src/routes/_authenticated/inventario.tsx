@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { COLUMNAS, ESTADOS, distinct, formatFecha, removeActivo, updateEstado, useInventory, type Activo } from "@/lib/inventory";
 
-export const Route = createFileRoute("/inventario")({
+export const Route = createFileRoute("/_authenticated/inventario")({
   head: () => ({
     meta: [
       { title: "Inventario · Inventario TI" },

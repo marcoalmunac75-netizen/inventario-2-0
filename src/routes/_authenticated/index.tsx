@@ -3,7 +3,7 @@ import { PageTitle, StatCard, pretty } from "@/components/AppHeader";
 import { EstadoBadge } from "@/components/EstadoBadge";
 import { countBy, distinct, useInventory } from "@/lib/inventory";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Dashboard · Inventario TI" },
