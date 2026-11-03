@@ -82,7 +82,7 @@ function Breakdown({ title, list, k, tone, raw }: { title: string; list: Activo[
   );
 }
 
-function Rows({ rows, total }: { rows: [string, number, string?][]; total: number }) {
+function Rows({ rows, total }: { rows: [string, number, (string | undefined)?][]; total: number }) {
   const toneClass: Record<string, string> = { success: "text-success", warning: "text-warning", destructive: "text-destructive" };
   return (
     <table className="w-full text-sm">
