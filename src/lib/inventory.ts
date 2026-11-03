@@ -158,7 +158,7 @@ export function distinct(list: Activo[], key: keyof Activo): string[] {
   const c = countBy(list, key);
   return Object.keys(c)
     .filter((k) => k !== "SIN INFORMACIÓN")
-    .sort((a, b) => c[b] - c[a]);
+    .sort((a, b) => (c[b] ?? 0) - (c[a] ?? 0));
 }
 
 export function formatFecha(v: string): string {

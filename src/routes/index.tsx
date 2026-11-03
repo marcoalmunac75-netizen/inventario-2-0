@@ -20,7 +20,7 @@ function Dashboard() {
   const estados = countBy(list, "estado");
   const tipos = countBy(list, "tipo");
   const tipoKeys = distinct(list, "tipo");
-  const max = Math.max(...tipoKeys.map((t) => tipos[t]), 1);
+  const max = Math.max(...tipoKeys.map((t) => tipos[t] ?? 0), 1);
   const atencion = list.filter((a) => ["DAÑADO", "GESTION CAMBIO DE EQUIPO", "PENDIENTE DE VALIDAR"].includes(a.estado)).slice(0, 8);
 
   return (
@@ -41,10 +41,10 @@ function Dashboard() {
               <div key={t}>
                 <div className="mb-1 flex justify-between text-sm">
                   <span>{pretty(t)}</span>
-                  <span className="font-semibold tabular-nums">{tipos[t]}</span>
+                  <span className="font-semibold tabular-nums">{tipos[t] ?? 0}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-primary" style={{ width: `${(tipos[t] / max) * 100}%` }} />
+                  <div className="h-2 rounded-full bg-primary" style={{ width: `${((tipos[t] ?? 0) / max) * 100}%` }} />
                 </div>
               </div>
             ))}
