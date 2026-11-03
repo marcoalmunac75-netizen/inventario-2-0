@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EMPRESAS, ESTADOS, TIPOS, UBICACIONES, addActivo, distinct, useInventory, type NuevoActivo } from "@/lib/inventory";
 
-export const Route = createFileRoute("/nuevo")({
+export const Route = createFileRoute("/_authenticated/nuevo")({
   head: () => ({
     meta: [
       { title: "Nuevo activo · Inventario TI" },

@@ -9,104 +9,109 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as InventarioRouteImport } from './routes/inventario'
-import { Route as NuevoRouteImport } from './routes/nuevo'
-import { Route as ReportesRouteImport } from './routes/reportes'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
+import { Route as AuthenticatedNuevoRouteImport } from './routes/_authenticated/nuevo'
+import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/_authenticated/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InventarioRoute = InventarioRouteImport.update({
-  id: '/inventario',
+const AuthenticatedInventarioRoute = AuthenticatedInventarioRouteImport.update({
+  id: '/_authenticated/inventario',
   path: '/inventario',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NuevoRoute = NuevoRouteImport.update({
-  id: '/nuevo',
+const AuthenticatedNuevoRoute = AuthenticatedNuevoRouteImport.update({
+  id: '/_authenticated/nuevo',
   path: '/nuevo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportesRoute = ReportesRouteImport.update({
-  id: '/reportes',
+const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
+  id: '/_authenticated/reportes',
   path: '/reportes',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/inventario': typeof InventarioRoute
-  '/nuevo': typeof NuevoRoute
-  '/reportes': typeof ReportesRoute
+  '/inventario': typeof AuthenticatedInventarioRoute
+  '/nuevo': typeof AuthenticatedNuevoRoute
+  '/reportes': typeof AuthenticatedReportesRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/inventario': typeof InventarioRoute
-  '/nuevo': typeof NuevoRoute
-  '/reportes': typeof ReportesRoute
+  '/inventario': typeof AuthenticatedInventarioRoute
+  '/nuevo': typeof AuthenticatedNuevoRoute
+  '/reportes': typeof AuthenticatedReportesRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/inventario': typeof InventarioRoute
-  '/nuevo': typeof NuevoRoute
-  '/reportes': typeof ReportesRoute
+  '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
+  '/_authenticated/nuevo': typeof AuthenticatedNuevoRoute
+  '/_authenticated/reportes': typeof AuthenticatedReportesRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/inventario' | '/nuevo' | '/reportes'
+  fullPaths: '/inventario' | '/nuevo' | '/reportes' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/inventario' | '/nuevo' | '/reportes'
-  id: '__root__' | '/' | '/inventario' | '/nuevo' | '/reportes'
+  to: '/inventario' | '/nuevo' | '/reportes' | '/'
+  id:
+    | '__root__'
+    | '/_authenticated/inventario'
+    | '/_authenticated/nuevo'
+    | '/_authenticated/reportes'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  InventarioRoute: typeof InventarioRoute
-  NuevoRoute: typeof NuevoRoute
-  ReportesRoute: typeof ReportesRoute
+  AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
+  AuthenticatedNuevoRoute: typeof AuthenticatedNuevoRoute
+  AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inventario': {
-      id: '/inventario'
+    '/_authenticated/inventario': {
+      id: '/_authenticated/inventario'
       path: '/inventario'
       fullPath: '/inventario'
-      preLoaderRoute: typeof InventarioRouteImport
+      preLoaderRoute: typeof AuthenticatedInventarioRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/nuevo': {
-      id: '/nuevo'
+    '/_authenticated/nuevo': {
+      id: '/_authenticated/nuevo'
       path: '/nuevo'
       fullPath: '/nuevo'
-      preLoaderRoute: typeof NuevoRouteImport
+      preLoaderRoute: typeof AuthenticatedNuevoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reportes': {
-      id: '/reportes'
+    '/_authenticated/reportes': {
+      id: '/_authenticated/reportes'
       path: '/reportes'
       fullPath: '/reportes'
-      preLoaderRoute: typeof ReportesRouteImport
+      preLoaderRoute: typeof AuthenticatedReportesRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  InventarioRoute: InventarioRoute,
-  NuevoRoute: NuevoRoute,
-  ReportesRoute: ReportesRoute,
+  AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
+  AuthenticatedNuevoRoute: AuthenticatedNuevoRoute,
+  AuthenticatedReportesRoute: AuthenticatedReportesRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
