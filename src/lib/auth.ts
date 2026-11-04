@@ -7,7 +7,7 @@ export const COMPANY_DOMAIN = "grupocabal.cl";
 export function isCompanyEmail(email: string | null | undefined): boolean {
   if (!email) return false;
   const parts = email.trim().toLowerCase().split("@");
-  return parts.length === 2 && parts[0].length > 0 && parts[1] === COMPANY_DOMAIN;
+  return parts.length === 2 && !!parts[0] && parts[1] === COMPANY_DOMAIN;
 }
 
 /** Acepta solo rutas internas para volver después de iniciar sesión. */
