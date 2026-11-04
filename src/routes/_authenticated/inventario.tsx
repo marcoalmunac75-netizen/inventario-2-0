@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { COLUMNAS, ESTADOS, distinct, formatFecha, removeActivo, updateEstado, useInventory, type Activo } from "@/lib/inventory";
+import { COLUMNAS, ESTADOS, distinct, formatFecha, useRemoveActivo, useUpdateEstado, useInventory, type Activo } from "@/lib/inventory";
+import { useIsAdmin } from "@/lib/auth";
 
 export const Route = createFileRoute("/_authenticated/inventario")({
   head: () => ({
@@ -27,6 +28,14 @@ const SEARCH_KEYS: (keyof Activo)[] = ["id", "marca", "modelo", "serie", "nInven
 
 function Inventario() {
   const list = useInventory();
+  const { user } = Route.useRouteContext();
+  const isAdmin = useIsAdmin(user.id);
+  const upd = useUpdateEstado();
+  const del = useRemoveActivo();
+  const updateEstado = (id: string, estado: string) =>
+    upd.mutate({ id, estado }, { onError: () => toast.error("No se pudo cambiar el estado") });
+  const removeActivo = (id: string) =>
+    del.mutate(id, { onSuccess: () => toast.success(`${id} eliminado`), onError: () => toast.error("No se pudo eliminar") });
   const [q, setQ] = useState("");
   const [f, setF] = useState({ tipo: "todos", estado: "todos", ubicacion: "todos", empresa: "todos" });
   const [page, setPage] = useState(0);
