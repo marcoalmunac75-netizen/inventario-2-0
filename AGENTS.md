@@ -10,5 +10,6 @@
 <!-- LOVABLE:END -->
 
 ## Project rules
-- Inventory data lives in `src/lib/inventory.ts` (in-memory store persisted to browser localStorage, seeded from `src/data/inventario.json`, generated from the user's Excel with placeholder values like "SIN INFORMACIÓN" stored as empty strings); swap this module for a backend when shared data is needed, since every page reads through `useInventory()`.
-- Bump the localStorage key in `inventory.ts` whenever the seed data or record shape changes, so browsers drop stale copies.
+- Inventory data lives in the Lovable Cloud `activos` table and is read/written only through hooks in `src/lib/inventory.ts`; never bundle the real spreadsheet in the app, since it contains personal data.
+- Access is enforced in the database: company-domain users read, `admin` role (in `user_roles`) writes; UI hiding of edit controls is cosmetic only.
+- All app pages live under `src/routes/_authenticated/`; only `/auth` and `/reset-password` are public.

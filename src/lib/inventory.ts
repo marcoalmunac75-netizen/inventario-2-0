@@ -150,6 +150,17 @@ export function useUpdateEstado() {
   });
 }
 
+export function useUpdateUsuario() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...campos }: { id: string; usuario: string; area: string; responsable: string }) => {
+      const { error } = await supabase.from("activos").update(campos).eq("id", id);
+      if (error) throw error;
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ACTIVOS_KEY }),
+  });
+}
+
 export function useRemoveActivo() {
   const qc = useQueryClient();
   return useMutation({

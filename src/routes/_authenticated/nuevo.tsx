@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EMPRESAS, ESTADOS, TIPOS, UBICACIONES, addActivo, distinct, useInventory, type NuevoActivo } from "@/lib/inventory";
+import { EMPRESAS, ESTADOS, TIPOS, UBICACIONES, useAddActivo, distinct, useInventory, type NuevoActivo } from "@/lib/inventory";
 
 export const Route = createFileRoute("/_authenticated/nuevo")({
   head: () => ({
@@ -45,6 +45,7 @@ function Nuevo() {
   const list = useInventory();
   const [form, setForm] = useState<NuevoActivo>(empty);
   const navigate = useNavigate();
+  const add = useAddActivo();
   const set = (k: keyof NuevoActivo, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const upper = (k: keyof NuevoActivo) => (e: React.ChangeEvent<HTMLInputElement>) => set(k, e.target.value.toUpperCase());
 
@@ -55,9 +56,13 @@ function Nuevo() {
       return;
     }
     const clean = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim()])) as NuevoActivo;
-    const a = addActivo(clean);
-    toast.success(`Activo ${a.id} registrado`);
-    navigate({ to: "/inventario" });
+    add.mutate(clean, {
+      onSuccess: (a) => {
+        toast.success(`Activo ${a.id} registrado`);
+        navigate({ to: "/inventario" });
+      },
+      onError: () => toast.error("No se pudo guardar. Solo los administradores pueden registrar activos."),
+    });
   };
 
   const sel = (k: keyof NuevoActivo, opts: readonly string[]) => (
