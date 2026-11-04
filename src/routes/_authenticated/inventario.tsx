@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, UserPen } from "lucide-react";
+import { ActualizarUsuarioDialog } from "@/components/ActualizarUsuarioDialog";
 import { toast } from "sonner";
 import { PageTitle } from "@/components/AppHeader";
 import { EstadoBadge } from "@/components/EstadoBadge";
@@ -28,6 +29,7 @@ const SEARCH_KEYS: (keyof Activo)[] = ["id", "marca", "modelo", "serie", "nInven
 
 function Inventario() {
   const list = useInventory();
+  const [editar, setEditar] = useState<Activo | null>(null);
   const { user } = Route.useRouteContext();
   const isAdmin = useIsAdmin(user.id);
   const upd = useUpdateEstado();
@@ -67,7 +69,7 @@ function Inventario() {
       <PageTitle
         title="Inventario"
         subtitle={`${filtered.length} de ${list.length} activos`}
-        action={<Button asChild><Link to="/nuevo">Nuevo activo</Link></Button>}
+        action={isAdmin ? <Button asChild><Link to="/nuevo">Nuevo activo</Link></Button> : undefined}
       />
       <div className="panel mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-5">
         <div className="relative lg:col-span-1">
@@ -111,27 +113,36 @@ function Inventario() {
                 <td className="px-3 py-2.5 text-xs">{a.area || "—"}</td>
                 <td className="px-3 py-2.5 text-xs">{a.ubicacion || "—"}</td>
                 <td className="px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-                  <Select value={a.estado} onValueChange={(v) => updateEstado(a.id, v)}>
-                    <SelectTrigger className="h-8 w-[190px] text-xs" aria-label={`Estado de ${a.id}`}><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {ESTADOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {isAdmin ? (
+                    <Select value={a.estado} onValueChange={(v) => updateEstado(a.id, v)}>
+                      <SelectTrigger className="h-8 w-[190px] text-xs" aria-label={`Estado de ${a.id}`}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {ESTADOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <EstadoBadge estado={a.estado} />
+                  )}
                 </td>
-                <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Eliminar ${a.id}`}
-                    onClick={() => {
-                      if (confirm(`¿Eliminar ${a.id}?`)) {
-                        removeActivo(a.id);
-                        toast.success(`${a.id} eliminado`);
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                <td className="whitespace-nowrap px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+                  {isAdmin && (
+                    <>
+                      <Button variant="ghost" size="icon" aria-label={`Actualizar usuario de ${a.id}`} title="Actualizar usuario" onClick={() => setEditar(a)}>
+                        <UserPen className="h-4 w-4 text-primary" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Eliminar ${a.id}`}
+                        title="Eliminar"
+                        onClick={() => {
+                          if (confirm(`¿Eliminar ${a.id}?`)) removeActivo(a.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </>
+                  )}
                 </td>
               </tr>
             ))}
