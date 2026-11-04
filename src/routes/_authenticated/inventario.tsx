@@ -161,6 +161,8 @@ function Inventario() {
         </div>
       </div>
 
+      <ActualizarUsuarioDialog activo={editar} usuarios={distinct(list, "usuario")} onClose={() => setEditar(null)} />
+
       <Dialog open={!!detalle} onOpenChange={(o) => !o && setDetalle(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
           {detalle && (
