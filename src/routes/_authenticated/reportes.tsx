@@ -22,15 +22,8 @@ function Reportes() {
   const estados = countBy(list, "estado");
   const sin = (k: keyof Activo) => list.filter((a) => !a[k]).length;
 
-  const exportar = () => {
-    const blob = new Blob(["\uFEFF" + toCsv(list)], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `inventario-ti-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const exportar = () => exportarCsv(list, `inventario-ti-${hoy()}.csv`);
+  const empresas = distinct(list, "empresa");
 
   return (
     <>
@@ -52,6 +45,28 @@ function Reportes() {
         <Breakdown title="Distribución por ubicación" list={list} k="ubicacion" raw />
         <Breakdown title="Distribución por área" list={list} k="area" raw />
         <div className="panel">
+          <h2 className="mb-3 font-semibold">Exportar por empresa</h2>
+          <table className="w-full text-sm">
+            <tbody className="divide-y">
+              {empresas.map((e) => (
+                <tr key={e}>
+                  <td className="py-2">{e}</td>
+                  <td className="py-2 text-right font-semibold tabular-nums">{countBy(list, "empresa")[e] ?? 0}</td>
+                  <td className="w-24 py-2 text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportarCsv(list.filter((a) => a.empresa === e), `inventario-${slugEmpresa(e)}-${hoy()}.csv`)}
+                    >
+                      <Download className="h-4 w-4" />CSV
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="panel">
           <h2 className="mb-3 font-semibold">Puntos a completar / validar</h2>
           <Rows
             total={list.length}
@@ -68,6 +83,28 @@ function Reportes() {
       </div>
     </>
   );
+}
+
+const hoy = () => new Date().toISOString().slice(0, 10);
+
+/** Nombre de archivo seguro a partir del nombre de la empresa. */
+export function slugEmpresa(nombre: string): string {
+  return nombre
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function exportarCsv(list: Activo[], filename: string) {
+  const blob = new Blob(["\uFEFF" + toCsv(list)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function Breakdown({ title, list, k, tone, raw }: { title: string; list: Activo[]; k: keyof Activo; tone?: boolean; raw?: boolean }) {
