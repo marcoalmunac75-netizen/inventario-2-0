@@ -13,6 +13,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedHistorialRouteImport } from './routes/_authenticated/historial'
 import { Route as AuthenticatedInventarioRouteImport } from './routes/_authenticated/inventario'
 import { Route as AuthenticatedNuevoRouteImport } from './routes/_authenticated/nuevo'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
@@ -35,6 +36,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHistorialRoute = AuthenticatedHistorialRouteImport.update({
+  id: '/historial',
+  path: '/historial',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInventarioRoute = AuthenticatedInventarioRouteImport.update({
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/historial': typeof AuthenticatedHistorialRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/nuevo': typeof AuthenticatedNuevoRoute
   '/reportes': typeof AuthenticatedReportesRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/historial': typeof AuthenticatedHistorialRoute
   '/inventario': typeof AuthenticatedInventarioRoute
   '/nuevo': typeof AuthenticatedNuevoRoute
   '/reportes': typeof AuthenticatedReportesRoute
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/historial': typeof AuthenticatedHistorialRoute
   '/_authenticated/inventario': typeof AuthenticatedInventarioRoute
   '/_authenticated/nuevo': typeof AuthenticatedNuevoRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/historial'
     | '/inventario'
     | '/nuevo'
     | '/reportes'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/reset-password'
+    | '/historial'
     | '/inventario'
     | '/nuevo'
     | '/reportes'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/historial'
     | '/_authenticated/inventario'
     | '/_authenticated/nuevo'
     | '/_authenticated/reportes'
@@ -154,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/historial': {
+      id: '/_authenticated/historial'
+      path: '/historial'
+      fullPath: '/historial'
+      preLoaderRoute: typeof AuthenticatedHistorialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inventario': {
       id: '/_authenticated/inventario'
       path: '/inventario'
@@ -186,6 +205,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedHistorialRoute: typeof AuthenticatedHistorialRoute
   AuthenticatedInventarioRoute: typeof AuthenticatedInventarioRoute
   AuthenticatedNuevoRoute: typeof AuthenticatedNuevoRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
@@ -194,6 +214,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedHistorialRoute: AuthenticatedHistorialRoute,
   AuthenticatedInventarioRoute: AuthenticatedInventarioRoute,
   AuthenticatedNuevoRoute: AuthenticatedNuevoRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,

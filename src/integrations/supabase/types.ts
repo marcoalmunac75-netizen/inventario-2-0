@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      activo_eventos: {
+        Row: {
+          activo_id: string
+          campo: string
+          creado_at: string
+          id: number
+          tipo_evento: string
+          usuario: string | null
+          usuario_email: string
+          valor_anterior: string
+          valor_nuevo: string
+        }
+        Insert: {
+          activo_id: string
+          campo?: string
+          creado_at?: string
+          id?: never
+          tipo_evento: string
+          usuario?: string | null
+          usuario_email?: string
+          valor_anterior?: string
+          valor_nuevo?: string
+        }
+        Update: {
+          activo_id?: string
+          campo?: string
+          creado_at?: string
+          id?: never
+          tipo_evento?: string
+          usuario?: string | null
+          usuario_email?: string
+          valor_anterior?: string
+          valor_nuevo?: string
+        }
+        Relationships: []
+      }
       activos: {
         Row: {
           area: string

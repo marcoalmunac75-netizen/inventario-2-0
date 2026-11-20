@@ -194,6 +194,42 @@ export function formatFecha(v: string): string {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : v || "—";
 }
 
+/**
+ * Fecha normalizada AAAA-MM-DD desde los formatos que trae la planilla
+ * (AAAA-MM-DD, DD/MM/AAAA, MM-DD-AAAA). Devuelve null si no se puede interpretar
+ * un día real, como "31/06/2025" o "02--07-025".
+ */
+export function parseFecha(v: string): string | null {
+  const s = (v ?? "").trim();
+  if (!s) return null;
+  const [, ia, ib, ic] = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(s) ?? [];
+  if (ia && ib && ic) return fechaReal(+ia, +ib, +ic);
+  const [, x, y, z] = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/.exec(s) ?? [];
+  if (x && y && z) {
+    const a = +z;
+    // "02-20-2025" es mes-día; "31/06/2025" no existe en ningún orden.
+    return fechaReal(a, +y, +x) ?? fechaReal(a, +x, +y);
+  }
+  return null;
+}
+
+function fechaReal(a: number, m: number, d: number): string | null {
+  const dt = new Date(Date.UTC(a, m - 1, d));
+  if (dt.getUTCFullYear() !== a || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
+  return `${String(a).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+/** Descarga la lista como CSV (Excel) desde el navegador. */
+export function descargarCsv(list: Activo[], filename: string) {
+  const blob = new Blob(["\uFEFF" + toCsv(list)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export const COLUMNAS: { key: keyof Activo; label: string }[] = [
   { key: "id", label: "ID ACTIVO" },
   { key: "tipo", label: "TIPO DE ACTIVO" },

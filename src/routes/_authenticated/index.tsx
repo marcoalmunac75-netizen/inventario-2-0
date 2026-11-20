@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { History } from "lucide-react";
 import { PageTitle, StatCard, pretty } from "@/components/AppHeader";
 import { EstadoBadge } from "@/components/EstadoBadge";
+import { Button } from "@/components/ui/button";
 import { countBy, distinct, useInventory } from "@/lib/inventory";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -25,7 +27,18 @@ function Dashboard() {
 
   return (
     <>
-      <PageTitle title="Dashboard" subtitle="Inventario de activos tecnológicos 2026" />
+      <PageTitle
+        title="Dashboard"
+        subtitle="Inventario de activos tecnológicos 2026"
+        action={
+          <Button variant="outline" asChild>
+            <Link to="/historial">
+              <History className="h-4 w-4" />
+              Historial de Activos
+            </Link>
+          </Button>
+        }
+      />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total activos" value={list.length} hint="Registrados" />
         <StatCard label="Operativos" value={estados["OPERATIVO"] ?? 0} hint="Estado del activo" tone="success" />

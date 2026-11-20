@@ -8,6 +8,13 @@
       "when": 1793707912211,
       "tag": "0000_inventario_auth_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795193047286,
+      "tag": "0001_add_activo_eventos_history",
+      "breakpoints": true
     }
   ]
 }
